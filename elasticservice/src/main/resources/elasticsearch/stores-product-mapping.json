@@ -1,0 +1,49 @@
+{
+  "settings": {
+    "number_of_shards": 15,
+    "number_of_replicas": 1,
+    "max_result_window" : 500000
+  },
+  "aliases" : {
+    "stores" : {}
+  },
+  "mappings": {
+    "product": {
+      "dynamic":  "true",
+      "_routing": {"required": true},
+      "properties": {
+        "id": {
+          "type": "long"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "sku": {
+      "_parent": {
+        "type": "product"
+      },
+      "properties": {
+        "id": {
+          "type": "long"
+        },
+        "parentId": {
+          "type": "long"
+        }}
+    },
+    "productproperty": {
+      "dynamic":  "true",
+      "_routing": {"required": true},
+      "properties": {
+        "id": {
+          "type": "long"
+        },
+        "propertyType": {
+          "type": "string",
+          "index": "not_analyzed"
+        }
+      }
+    }
+  }
+}

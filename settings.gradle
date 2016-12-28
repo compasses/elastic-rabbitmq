@@ -1,3 +1,5 @@
 include 'elasticservice'
 include 'rabbitmqservice'
 include 'generatedata'
+include 'app'
+
