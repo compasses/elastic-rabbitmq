@@ -59,10 +59,10 @@ shard数只能在建立index时设置，后期不能更改，但是，replica数
 这里使用intellij idea IDE，ElasticSearch源码使用[gradle](https://gradle.org/)构建，所以需要本地开发环境安装gradle。
 
     1. checkout ElasticSearch的源码：https://github.com/elastic/elasticsearch
-    2. 切换到5.0.0版本：切换到源码目录里面执行： ``` git checkout v5.0.0 ```
-    3. 执行gradle任务导入idea IDE：``` gradle idea ```
-    4. 打开idea新建project from exist source，导入即可。然后通过命令行进行构建也行idea里面进行也可以：``` gradle build ```
-    5. main函数入口在Elasticsearch.java里面；idea运行前需要设置个JVM参数，例如 ``` -Des.path.home=C:\elasticsearch-5.0.0\elasticsearch-5.0.0 ```。
+    2. 切换到5.0.0版本：切换到源码目录里面执行： git checkout v5.0.0
+    3. 执行gradle任务导入idea IDE：gradle idea
+    4. 打开idea新建project from exist source，导入即可。然后通过命令行进行构建也行idea里面进行也可以：gradle build
+    5. main函数入口在Elasticsearch.java里面；idea运行前需要设置个JVM参数，例如 -Des.path.home=C:\elasticsearch-5.0.0\elasticsearch-5.0.0。
 
 这个目录下需要有ElasticSearch运行的一些配置文件：包括elasticsearch.yml，jvm.options，log4j2.properties。初始没有可以从安装包里面取一份；
 也可以从build结果里面取一份。
