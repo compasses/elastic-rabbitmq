@@ -110,7 +110,7 @@ public class DocumentService {
         params = addTenantId2Param(params);
 
         // for real-time fetch
-        params.put("refresh", "true");
+        //params.put("refresh", "true");
         try {
             Response response = client.performRequest(
                     "POST",
@@ -146,7 +146,7 @@ public class DocumentService {
     public ESSaveResponse Store(String index, String type, Long sourceId, Map<String, String> params, HttpEntity requestBody) {
         params = addTenantId2Param(params);
         // for real-time fetch
-        params.put("refresh", "true");
+        //params.put("refresh", "true");
         try {
             Response response = client.performRequest(
                     "POST",

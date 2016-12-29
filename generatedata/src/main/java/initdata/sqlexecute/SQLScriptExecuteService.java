@@ -1,5 +1,6 @@
 package initdata.sqlexecute;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import initdata.sqlexecute.SQLExecute.MariaDBSQLExecute;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by I311352 on 12/1/2016.
@@ -36,6 +38,10 @@ public class SQLScriptExecuteService {
         }
 
         mariaDBSQLExecute.executeSQL(sqlLine);
+    }
+
+    public void sendMsgToRabbit() throws TimeoutException, IOException {
+        mariaDBSQLExecute.publish();
     }
 
     private boolean loadSQLScriptLine() {

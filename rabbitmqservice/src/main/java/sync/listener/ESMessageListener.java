@@ -72,8 +72,6 @@ public class ESMessageListener implements MessageListener {
             } else {
                 lightLogger.warn("Message is invalid: " + routingKey);
             }
-        } catch (Exception e) {
-            lightLogger.error("Exception " + e);
         } finally {
             lightLogger.info("Done");
         }
@@ -88,10 +86,16 @@ public class ESMessageListener implements MessageListener {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         boolean successful = false;
-        lightLogger.info("ES sync start on lightMessage[" + message + "]");
+
+        lightLogger.info("ES sync start on ESHandleMessage " + message.toString());
         ESHandler handler = null;
         try {
             handler = handlerManager.getHandler(message);
+            if (handler == null) {
+                lightLogger.info("Handler is null for message" + message.toString());
+                return;
+            }
+
             handler.onMessage(message);
 
             successful = true;
@@ -103,10 +107,8 @@ public class ESMessageListener implements MessageListener {
             String metricName = message.getClass().getSimpleName() + "." + handler.getClass().getSimpleName();
             //counterService.increment(metricName + "." + (successful ? ".success" : "failed"));
             //gaugeService.submit(metricName, stopWatch.getTime());
-            lightLogger.info("ES sync end on lightMessage[" + message + "], execTime[" + stopWatch.getTime() + "]");
+            lightLogger.info("ES sync end on execTime[" + stopWatch.getTime() + "]");
         }
-
-
     }
 
 //    @Override

@@ -1,3 +1,4 @@
+include 'commonutil'
 include 'elasticservice'
 include 'rabbitmqservice'
 include 'generatedata'

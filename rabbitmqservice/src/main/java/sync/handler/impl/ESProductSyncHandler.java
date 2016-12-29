@@ -128,7 +128,8 @@ public class ESProductSyncHandler extends ESAbstractHandler {
         if (category != null) {
             String levelInfo;
 
-            if (category.get(CATEGORY_LEVEL_FIELD).isJsonNull() ||
+            if (category.get(CATEGORY_LEVEL_FIELD) == null ||
+                    category.get(CATEGORY_LEVEL_FIELD).isJsonNull() ||
                     category.get(CATEGORY_LEVEL_FIELD).getAsString().isEmpty()) {
                 logger.warn("Product Message with category, but miss internal order");
                 Long categoryId = category.get("id").getAsLong();

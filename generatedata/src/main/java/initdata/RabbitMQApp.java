@@ -37,13 +37,14 @@ public class RabbitMQApp {
     @Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
         return args -> {
-            publishMessageTask(ctx);
+            //publishMessageTask(ctx);
             SQLScriptExecuteService sqlScriptExecuteService = ctx.getBean(SQLScriptExecuteService.class);
             if (System.getProperty("sql.source") != null) {
                 sqlScriptExecuteService.setDefaultSqlSource(System.getProperty("sql.source"));
             }
 
-            sqlScriptExecuteService.runSQL();
+            //sqlScriptExecuteService.runSQL();
+            sqlScriptExecuteService.sendMsgToRabbit();
             System.exit(0);
         };
     }

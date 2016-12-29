@@ -1,3 +1,7 @@
+allprojects {
+    task hello << { task -> println "I'm $task.project.name" }
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
@@ -48,6 +52,7 @@ subprojects {
 
 project(':app') {
     dependencies {
+        compile project(':commonutil')
         compile project(':elasticservice')
         compile project(':rabbitmqservice')
     }
@@ -55,6 +60,7 @@ project(':app') {
 
 project(':rabbitmqservice') {
     dependencies {
+        compile project(':commonutil')
         compile project(':elasticservice')
     }
 }

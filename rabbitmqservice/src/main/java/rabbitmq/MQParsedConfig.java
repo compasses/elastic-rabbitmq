@@ -11,7 +11,7 @@ public class MQParsedConfig {
     public final static int multiplier = 2;
     public final static int max_retry = 4;
     public final static int max_interval = 50;
-    public final static int conncurrentConsumers = 1;
+    public final static int conncurrentConsumers = 15;
     public final static String[] routingKeys = {"Product.CREATE.#", "SKU.CREATE.#", "CatalogSKU.LIST.#", "" +
             "Category.ASSOCIATE.#"};
 }

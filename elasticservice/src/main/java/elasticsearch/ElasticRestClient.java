@@ -43,6 +43,10 @@ public class ElasticRestClient extends AbstractFactoryBean<RestClient> {
                 .builder(addresses)
                 .setMaxRetryTimeoutMillis(ESConstants.RESTCLIENT_TIMEOUT)
                 .build();
+
+//        this.sniffer = Sniffer.builder(this.restClient)
+//                                 .setSniffIntervalMillis(60000).build();
+
         return this.restClient;
     }
 

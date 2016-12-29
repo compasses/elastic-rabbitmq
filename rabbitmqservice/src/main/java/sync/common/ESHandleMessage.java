@@ -3,6 +3,7 @@ package sync.common;
 import com.google.gson.JsonElement;
 import org.apache.commons.collections.CollectionUtils;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -106,5 +107,18 @@ public class ESHandleMessage {
 
     public void setEventGenerated(boolean eventGenerated) {
         isEventGenerated = eventGenerated;
+    }
+
+    @Override
+    public String toString() {
+        return "ESHandleMessage{" +
+                "tenantId=" + tenantId +
+                ", type='" + type + '\'' +
+                ", action=" + action +
+                ", needSendEvent=" + needSendEvent +
+                ", isEventGenerated=" + isEventGenerated +
+                ", productIds=" + productIds +
+                ", channelId=" + channelId +
+                '}';
     }
 }

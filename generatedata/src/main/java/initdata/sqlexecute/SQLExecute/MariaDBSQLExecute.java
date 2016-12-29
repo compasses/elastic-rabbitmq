@@ -1,5 +1,10 @@
 package initdata.sqlexecute.SQLExecute;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.ConnectionFactory;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -8,9 +13,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by I311352 on 12/1/2016.
@@ -23,6 +27,7 @@ public class MariaDBSQLExecute {
     private boolean USER_CONFIG = false;
 
     private Connection connection = null;
+    private Channel channel;
 
     public boolean initConnect() {
         InputStream inputStream = null;
@@ -136,4 +141,93 @@ public class MariaDBSQLExecute {
         this.DEFAULT_CONNECTION = DEFAULT_CONNECTION;
         USER_CONFIG = true;
     }
+
+    public  void publish() throws IOException, TimeoutException {
+        initConnect();
+        Connection conn = this.connection;
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost("10.128.165.206");
+        connectionFactory.setPort(5672);
+        com.rabbitmq.client.Connection connection = connectionFactory.newConnection();
+        this.channel = connection.createChannel();
+
+        this.channel.exchangeDeclare("SharedExchange", "topic", true);
+
+        String sql = "SELECT MESSAGEPROPERTIES, EXCHANGENAME, ROUTINGKEY, MESSAGEBODYBYTES FROM JOBEXECRECORD";
+        Long offset = 0L;
+        Long limit  = 1000L;
+        try {
+            String execSql = sql + " limit " + limit + " offset " + offset;
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String properties = rs.getNString(1);
+                String exchangeName = rs.getNString(2);
+                String routingKey = rs.getNString(3);
+                Blob msg = rs.getBlob(4);
+                if (msg == null) {
+                    logger.error("Msg is null" + " routingKey=" + routingKey);
+                    continue;
+                }
+                JsonObject object = new JsonParser().parse(properties).getAsJsonObject();
+                JsonObject header = object.get("headers").getAsJsonObject();
+
+                HashMap<String, Object> headers = new HashMap<>();
+                headers.put("X-Tenant-ID", header.get("X-Tenant-ID").getAsLong());
+                headers.put("X-Message-ID", header.get("X-Message-ID").getAsString());
+                headers.put("X-User-ID", header.get("X-User-ID").getAsLong());
+                headers.put("X-Employee-ID", -1L);
+
+                launchMsg(headers, exchangeName, routingKey, msg.getBytes(1, (int) msg.length()));
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {}
+            }
+        }
+    }
+
+    public void launchMsg(Map<String, Object> headers, String exchangeName, String routingKey, byte[] msg) {
+        if (routingKey.length() > 0) {
+            if (!routingKey.contains("Product.") && !routingKey.contains("SKU.")) {
+                return;
+            }
+
+            logger.info("RoutingKey: " + routingKey + " msg:" + msg.toString());
+
+            try {
+                this.channel.basicPublish(exchangeName, routingKey,
+                        new AMQP.BasicProperties.Builder()
+                                .contentType("application/json")
+                                .headers(headers)
+                                .build(),
+                        msg);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+
+        logger.info("RoutingKey: " + routingKey + " msg:" + msg.toString());
+
+        try {
+            this.channel.basicPublish(exchangeName, routingKey,
+                    new AMQP.BasicProperties.Builder()
+                            .contentType("application/json")
+                            .headers(headers)
+                            .build(),
+                    msg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 }
