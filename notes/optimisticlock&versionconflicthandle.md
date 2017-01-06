@@ -118,4 +118,5 @@ try {
 上述的代码也有一个缺陷，例如级联Conflict的情况。就是这次Conflict了，Conflict处理后，又产生了Conflict，这种情况可以多次catch，也可以做记录到另一个数据表中，后面统一进行恢复处理。
 
 参考文档：
+
 1. https://www.elastic.co/blog/elasticsearch-versioning-support
