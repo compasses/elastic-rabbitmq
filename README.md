@@ -10,3 +10,4 @@ load data into elasticsearch from consume rabbitmq, use version control make dat
 # Some notes
 1. [ElasticSearch 深入理解 一：基础概念&源码启动](./notes/basic&sourcestart.md)
 2. [ElasticSearch 深入理解 二：乐观锁&版本冲突管理](./notes/optimisticlock&versionconflicthandle.md)
+2. [ElasticSearch 深入理解 三：集群部署设计](./notes/cluster_relateddesign.md)
