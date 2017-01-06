@@ -44,15 +44,17 @@ ES会做一次rebalancing，这次每个node都平均分了10个shard。但是ES
 ElasticSearch作为一个分布式的搜索引擎，一大挑战就是集群中的一致性问题。在上篇文章里面说了在高并发下如何通过ES的乐观锁机制保证数据的一致性的，但是主要是从业务场景出发，并没有太多考虑集群中的一致性问题，因为那是ES本身要解决的。
 
 有很多的一致性算法，例如ETCD使用的Raft，从协议层面上保证一致性。ES使用的是自己的一套一致性算法，称为zen discovery。在做一致性同步的同时也会做一些ES本身的数据同步，提高效率，减少带宽。它主要完成以下几个功能：
-1. Master节点选举：首先会根据节点的StateVersion，较高的称为master，如果相等，再check node的type，是否能做master，然后进行比较节点的ID，较小的选为master。
-2. FaultDetection：master会给所有的node发送node fault detection检测包；普通节点会给master节点发送master fault detection检测包。
-3. Membership管理: 节点加入退出等相关处理。
-4. Cluster State publish：集群状态的发布，自带版本号用于一致性的状态更新。
-5. Unicast Ping：单播Ping包，ES目前已不推荐使用多播做集群发现了，因为不好控制也不安全。单播可以精确控制节点数，使伸缩性变得简单。一个重要的配置项是 ``` discovery.zen.ping.unicast.hosts: ["host1", "host2:port"] ```，指定了ES实例所在的机器。
+
+    1. Master节点选举：首先会根据节点的StateVersion，较高的称为master，如果相等，再check node的type，是否能做master，然后进行比较节点的ID，较小的选为master。
+    2. FaultDetection：master会给所有的node发送node fault detection检测包；普通节点会给master节点发送master fault detection检测包。
+    3. Membership管理: 节点加入退出等相关处理。
+    4. Cluster State publish：集群状态的发布，自带版本号用于一致性的状态更新。
+    5. Unicast Ping：单播Ping包，ES目前已不推荐使用多播做集群发现了，因为不好控制也不安全。单播可以精确控制节点数，使伸缩性变得简单。一个重要的配置项是 ``` discovery.zen.ping.unicast.hosts: ["host1", "host2:port"] ```，指定了ES实例所在的机器。
 
 #### 几个重要配置
 对于ElasticSearch如何发生Split-brain，[这篇文章](http://blog.trifork.com/2013/10/24/how-to-avoid-the-split-brain-problem-in-elasticsearch/)清晰地做了解释。
 为了防止出现Split-brain问题，ES有几个配置在集群部署时需要格外注意：
+
     cluster.name: elasticsearch_production //集群的名字，不同名字不能组成一个Cluster
     node.name: elasticsearch_005_data      //该节点的名字
     discovery.zen.minimum_master_nodes: 2  //对防脑裂起到关键作用。需要设置为quorum值，根据node节点的数量：(number of master-eligible nodes / 2) + 1
