@@ -19,12 +19,12 @@ import java.util.List;
 public class ElasticRestClient extends AbstractFactoryBean<RestClient> {
     private static Logger logger = Logger.getLogger(ElasticRestClient.class);
     private ClusterFailureListener clusterFailureListener;
-    private RestClient restClient;
+    private volatile RestClient restClient;
     private static List<String> hosts = new ArrayList<>();
     private Sniffer sniffer;
 
     static {
-        hosts.add("10.128.165.206:9200");
+        hosts.add("10.128.161.107:9200");
     }
 
     @Override
@@ -34,6 +34,10 @@ public class ElasticRestClient extends AbstractFactoryBean<RestClient> {
 
     @Override
     public RestClient createInstance() throws Exception {
+        if (this.restClient != null) {
+            return this.restClient;
+        }
+
         HttpHost[] addresses = new HttpHost[hosts.size()];
         for (int i = 0; i < hosts.size(); i++) {
             addresses[i] = HttpHost.create(hosts.get(i));

@@ -38,7 +38,7 @@ public abstract class ESAbstractHandler implements ESHandler {
     public HotDocumentService hotDocumentService;
 
     public void onMessage(ESHandleMessage message) {
-        logger.info("Going to handle message type:" + message.getType() + " action:" + message.getAction());
+        logger.info("Going to handle message type:" + message.getType() + " searchcommand:" + message.getAction());
         boolean execResult = preHandleMessage(message);
         if (execResult != true) {
             logger.warn("PreHandleMessage failed: " + message.toString());
@@ -69,12 +69,12 @@ public abstract class ESAbstractHandler implements ESHandler {
                 execResult = handleUnlist(message);
                 break;
             default:
-                throw new IllegalArgumentException("cannot  support this action " + message.getAction());
+                throw new IllegalArgumentException("cannot  support this searchcommand " + message.getAction());
         }
 
-        // should do some action, now just throw exception
+        // should do some searchcommand, now just throw exception
         if (execResult != true) {
-            throw new IllegalArgumentException("process failed for type and action " + message.getType() +
+            throw new IllegalArgumentException("process failed for type and searchcommand " + message.getType() +
                     message.getAction());
         }
 

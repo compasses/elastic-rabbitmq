@@ -114,7 +114,7 @@ public class ESHandleMessage {
         return "ESHandleMessage{" +
                 "tenantId=" + tenantId +
                 ", type='" + type + '\'' +
-                ", action=" + action +
+                ", searchcommand=" + action +
                 ", needSendEvent=" + needSendEvent +
                 ", isEventGenerated=" + isEventGenerated +
                 ", productIds=" + productIds +

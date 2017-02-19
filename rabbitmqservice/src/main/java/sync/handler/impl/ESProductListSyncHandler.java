@@ -135,7 +135,7 @@ public class ESProductListSyncHandler extends ESAbstractHandler {
                 param.put("version", "-1");
             }
 
-            // do action
+            // do searchcommand
             if (action == OperateAction.LIST) {
                 list(skuId, productId, channelId, param, sku);
             } else {
@@ -370,7 +370,7 @@ public class ESProductListSyncHandler extends ESAbstractHandler {
                 //nothing update
                 continue;
             } else {
-                // action meta data
+                // searchcommand meta data
                 JsonObject innerMeta = new JsonObject();
                 innerMeta.addProperty("_id", skuId.toString());
                 innerMeta.addProperty("parent", productId.toString());

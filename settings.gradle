@@ -2,5 +2,6 @@ include 'commonutil'
 include 'elasticservice'
 include 'rabbitmqservice'
 include 'generatedata'
+include 'netty-http'
 include 'app'
 
