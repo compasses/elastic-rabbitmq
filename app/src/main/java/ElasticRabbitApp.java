@@ -1,9 +1,15 @@
 import http.Config;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
+import org.springframework.cloud.netflix.hystrix.EnableHystrix;
+import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import rabbitmq.ListenerJobBuilder;
@@ -17,7 +23,9 @@ import java.util.concurrent.locks.ReadWriteLock;
  */
 @SpringBootConfiguration
 @EnableAutoConfiguration
-//@EnableHystrixDashboard
+@EnableHystrix
+@EnableCircuitBreaker
+@EnableHystrixDashboard
 @ComponentScan({ "elasticsearch","rabbitmq", "sync" })
 public class ElasticRabbitApp implements CommandLineRunner {
     @Autowired

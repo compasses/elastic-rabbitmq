@@ -5,7 +5,7 @@ package http;
  */
 public class Config {
     public Integer getBacklog() {
-        return 128;
+        return 1280;
     }
 
     public Integer getPort() {
@@ -21,6 +21,6 @@ public class Config {
     }
 
     public Integer getEventLoopThreadCount() {
-        return 1;
+        return 10;
     }
 }

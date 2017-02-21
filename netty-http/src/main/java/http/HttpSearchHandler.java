@@ -3,25 +3,25 @@ package http;
 import com.google.gson.Gson;
 import http.elasticaction.RestRequest;
 import http.elasticaction.RestResponse;
-import http.exception.BadRequestException;
+import http.elasticaction.SearchDSLImpl;
 import http.message.DecodedSearchRequest;
 import http.searchcommand.RestCommand;
 import http.searchcommand.SearchRequest;
-import io.netty.buffer.ByteBuf;
+import http.worker.SearchWorker;
+import http.worker.notifyexecutor.IFutureListener;
+import http.worker.notifyexecutor.SearchingFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import org.apache.commons.io.IOUtils;
-import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RunnableFuture;
 
 
 /**
@@ -31,11 +31,11 @@ public class HttpSearchHandler extends SimpleChannelInboundHandler<DecodedSearch
     private final static Gson gson = new Gson();
     private final static Logger logger = LoggerFactory.getLogger(HttpSearchHandler.class);
 
-    private final EventExecutorGroup executor;
+    private final SearchWorker executor;
     private RestClient client;
 
-    public HttpSearchHandler(EventExecutorGroup group, RestClient client) {
-        this.executor = group;
+    public HttpSearchHandler(ExecutorService group, RestClient client) {
+        this.executor = (SearchWorker) group;
         this.client = client;
     }
 
@@ -44,7 +44,7 @@ public class HttpSearchHandler extends SimpleChannelInboundHandler<DecodedSearch
         logger.info("Got search request " + searchRequest.getQueryMeta().toString());
         //throw new BadRequestException(new Exception("adads"));
 
-        RestCommand command = new RestCommand(client, new RestRequest());
+        RestCommand command = new RestCommand(client, new SearchDSLImpl(searchRequest.getQueryMeta()));
 
         //SearchRequest request = new SearchRequest();
         //        Callable<? extends Object> callable = new Callable<Object>() {
@@ -54,23 +54,55 @@ public class HttpSearchHandler extends SimpleChannelInboundHandler<DecodedSearch
         //            }
         //        };
 
-        final Future<? extends Object> future = executor.submit(new SearchRequest(command));
+        if (ctx.executor().inEventLoop()) {
+            logger.info("In event loop");
+        }
 
-        future.addListener(new GenericFutureListener<Future<Object>>() {
+        SearchingFuture searchingFuture = (SearchingFuture) executor.doSearch(new SearchRequest(command));//(SearchingFuture) new SearchingFuture<>(new SearchRequest(command));
+        searchingFuture.setListener(new IFutureListener() {
             @Override
-            public void operationComplete(Future<Object> future) throws Exception {
-                logger.info("Got Response for request: " + searchRequest);
-                if (future.isSuccess()) {
-                    RestResponse restResponse = new RestResponse();
+            public void onSuccess(Object result) {
+                logger.info("Got Response for request: ");
+                RestResponse restResponse = new RestResponse();
 
-                    restResponse.setBody(future.get());
-                    restResponse.setHttpRequest(searchRequest.getHttpRequest());
-                    ctx.writeAndFlush(restResponse);
-                } else {
-                    ctx.fireExceptionCaught(future.cause());
-                }
+                restResponse.setBody(result);
+                restResponse.setHttpRequest(searchRequest.getHttpRequest());
+                ctx.writeAndFlush(restResponse);
+            }
+
+            @Override
+            public void onCancel(RunnableFuture cancelledFuture) {
+
+            }
+
+            @Override
+            public void onError(Throwable e, java.util.concurrent.Future future) {
+                ctx.fireExceptionCaught(e);
             }
         });
+
+//        final Future<? extends Object> future = executor.submit(new SearchRequest(command));
+//
+//        future.addListener(new GenericFutureListener<Future<Object>>() {
+//            @Override
+//            public void operationComplete(Future<Object> future) throws Exception {
+//                logger.info("Got Response for request: ");
+//                if (future.isSuccess()) {
+//                    RestResponse restResponse = new RestResponse();
+//
+//                    restResponse.setBody(future.get());
+//                    restResponse.setHttpRequest(searchRequest.getHttpRequest());
+//                    ctx.writeAndFlush(restResponse);
+//                } else {
+//                    ctx.fireExceptionCaught(future.cause());
+//                }
+//                if (ctx.executor().inEventLoop()) {
+//                    logger.info("In event loop");
+//                } else {
+//                    logger.info("Not in event loop");
+//                }
+//            }
+//        });
 //
 //        RestResponse restResponse = new RestResponse();
 //        restResponse.setBody(gson.toJson(searchRequest.getQueryMeta()));

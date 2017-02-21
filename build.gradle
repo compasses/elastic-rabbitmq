@@ -5,6 +5,7 @@ allprojects {
 subprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
+
     repositories {
         // Use 'jcenter' for resolving your dependencies.
         // You can declare any Maven/Ivy/file repository here.
@@ -16,10 +17,10 @@ subprojects {
     }
     dependencies {
         // The production code uses the SLF4J logging API at compile time
-        compile group: 'org.springframework', name: 'spring-webmvc', version: '4.3.5.RELEASE'
-        compile group: 'org.springframework.boot', name: 'spring-boot', version: '1.4.3.RELEASE'
-        compile group: 'org.springframework', name: 'spring-context', version: '4.3.5.RELEASE'
-        compile group: 'org.springframework', name: 'spring-orm', version: '4.3.5.RELEASE'
+        //compile group: 'org.springframework', name: 'spring-webmvc', version: '4.3.5.RELEASE'
+        //compile group: 'org.springframework.boot', name: 'spring-boot', version: '1.4.3.RELEASE'
+        //compile group: 'org.springframework', name: 'spring-context', version: '4.3.5.RELEASE'
+        //compile group: 'org.springframework', name: 'spring-orm', version: '4.3.5.RELEASE'
 
         compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
         compile group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
@@ -28,6 +29,9 @@ subprojects {
 //        compile group: 'org.hibernate', name: 'hibernate-core', version: '5.2.5.Final'
 //        compile group: 'org.hibernate', name: 'hibernate-annotations', version: '3.5.6-Final'
 //        compile group: 'org.springframework', name: 'spring-tx', version: '4.3.5.RELEASE'
+        compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.7'
+        compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
+
 
         compile group: 'log4j', name: 'log4j', version: '1.2.17'
         compile 'org.slf4j:slf4j-api:1.7.21'
@@ -47,6 +51,9 @@ subprojects {
         // 'test.useTestNG()' to your build script.
         testCompile 'junit:junit:4.12'
 
+        compile("org.springframework.cloud:spring-cloud-netflix-core:1.2.5.RELEASE")
+        compile 'org.springframework.cloud:spring-cloud-starter-hystrix:1.2.5.RELEASE'
+        compile 'org.springframework.cloud:spring-cloud-starter-hystrix-dashboard:1.2.5.RELEASE'
     }
 }
 
