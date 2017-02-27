@@ -24,7 +24,9 @@ public class WorkerThread implements ThreadFactory {
 
     @Override
     public Thread newThread(Runnable r) {
-        Thread t = new Thread(r, name + "_" + threadCount);
+        ThreadGroup group = new ThreadGroup("SearchWorder");
+
+        Thread t = new Thread(group, r, name + "_" + threadCount);
         threadCount ++;
 
         states.add(String.format("Created thread %d with name %s on %s \n", t.getId(), t.getName(), new Date()));
