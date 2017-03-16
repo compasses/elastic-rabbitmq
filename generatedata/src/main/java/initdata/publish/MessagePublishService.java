@@ -101,7 +101,8 @@ public class MessagePublishService {
             String rabbitusr = null;
             String rabbitpwd = null;
             logger.info("Use the specific rabbit config file!" + this.getRabbitProperties());
-            inputStream = new FileInputStream(this.getRabbitProperties());
+            //inputStream = new FileInputStream(this.getRabbitProperties());
+            inputStream = this.getClass().getResourceAsStream(this.getRabbitProperties());
             props.load(inputStream);
             rabbitusr = props.get("MQ_DB_USR").toString();
             rabbitpwd = props.get("MQ_DB_PWD").toString();

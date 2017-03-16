@@ -18,6 +18,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import querydsl.TemplateGenerator;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -44,7 +45,7 @@ public class HttpSearchHandler extends SimpleChannelInboundHandler<DecodedSearch
         logger.info("Got search request " + searchRequest.getQueryMeta().toString());
         //throw new BadRequestException(new Exception("adads"));
 
-        RestCommand command = new RestCommand(client, new SearchDSLImpl(searchRequest.getQueryMeta()));
+        RestCommand command = new RestCommand(client, new TemplateGenerator(searchRequest.getQueryMeta()));
 
         //SearchRequest request = new SearchRequest();
         //        Callable<? extends Object> callable = new Callable<Object>() {
@@ -57,6 +58,7 @@ public class HttpSearchHandler extends SimpleChannelInboundHandler<DecodedSearch
         if (ctx.executor().inEventLoop()) {
             logger.info("In event loop");
         }
+        logger.info("Current info" + this.executor.monitorInfo());
 
         SearchingFuture searchingFuture = (SearchingFuture) executor.doSearch(new SearchRequest(command));//(SearchingFuture) new SearchingFuture<>(new SearchRequest(command));
         searchingFuture.setListener(new IFutureListener() {

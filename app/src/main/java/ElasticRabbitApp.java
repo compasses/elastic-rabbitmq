@@ -26,7 +26,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 @EnableHystrix
 @EnableCircuitBreaker
 @EnableHystrixDashboard
-@ComponentScan({ "elasticsearch","rabbitmq", "sync" })
+@ComponentScan({ "elasticsearch","rabbitmq", "sync"})
 public class ElasticRabbitApp implements CommandLineRunner {
     @Autowired
     private ConfigurableApplicationContext context;

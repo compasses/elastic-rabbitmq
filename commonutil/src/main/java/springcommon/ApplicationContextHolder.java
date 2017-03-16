@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
+@Component
 public class ApplicationContextHolder implements ApplicationContextAware, BeanFactoryAware {
 
     private static ApplicationContext applicationContext;

@@ -20,7 +20,7 @@ public class SearchWorker extends ThreadPoolExecutor {
     private static SearchWorker instance;
 
     public SearchWorker(int size, String name, BlockingQueue blockingQueue) {
-        super(size, size, 0L, TimeUnit.MILLISECONDS, blockingQueue, new WorkerThread(name));
+        super(size, size*2, 0L, TimeUnit.MILLISECONDS, blockingQueue, new WorkerThread(name));
     }
 
     @Override
@@ -40,5 +40,12 @@ public class SearchWorker extends ThreadPoolExecutor {
         future.setExecutor(this);
         future.run();
         return future;
+    }
+
+    public String monitorInfo() {
+        StringBuilder result = new StringBuilder(100);
+        result.append("\r\n QueueSize :" + this.getQueue().size());
+        result.append("ThreadCount :" + this.getPoolSize() + "\r\n");
+        return result.toString();
     }
 }

@@ -11,6 +11,7 @@ subprojects {
         // You can declare any Maven/Ivy/file repository here.
         mavenCentral()
         mavenLocal()
+        jcenter()
         maven {
             url 'http://nexus.smec/nexus/content/groups/allrepository'
         }
@@ -54,6 +55,7 @@ subprojects {
         compile("org.springframework.cloud:spring-cloud-netflix-core:1.2.5.RELEASE")
         compile 'org.springframework.cloud:spring-cloud-starter-hystrix:1.2.5.RELEASE'
         compile 'org.springframework.cloud:spring-cloud-starter-hystrix-dashboard:1.2.5.RELEASE'
+        compile "org.jtwig:jtwig-core:5.85.3.RELEASE"
     }
 }
 

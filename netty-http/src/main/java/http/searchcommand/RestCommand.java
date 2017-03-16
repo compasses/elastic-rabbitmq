@@ -24,12 +24,12 @@ public class RestCommand extends HystrixCommand<char[]> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RestCommand.class);
 
     private RestClient client;
-    private SearchDSLImpl restRequest;
+    private SearchDSL restRequest;
 
     public RestCommand(RestClient client, SearchDSL restRequest) {
         super(getSetter(client.toString()));
         this.client = client;
-        this.restRequest = (SearchDSLImpl) restRequest;
+        this.restRequest = restRequest;
     }
 
     private static HystrixCommand.Setter getSetter(String key) {
@@ -55,7 +55,7 @@ public class RestCommand extends HystrixCommand<char[]> {
     @Override
     protected char[] run() throws Exception {
         LOGGER.info("Going to get request: " + "stores/product/_search?size=1000");
-        String query  = this.restRequest.getDSL(null).toString();
+        String query  = this.restRequest.getDSL().toString();
         LOGGER.info("Going to query..: " + query);
         HttpEntity requestBody = new StringEntity("{\n" +
                 "  \"match_all\" : {\n" +

@@ -47,6 +47,7 @@ public class HttpServerBoot {
             Channel ch = b.bind(conf.getPort()).sync().channel();
             ch.closeFuture().sync();
         } finally {
+
         }
     }
 }

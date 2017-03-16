@@ -1,0 +1,14 @@
+{ 
+    "query":{
+ {% if (length(name)==0) %}
+         "match_all": {}
+ {% else %}
+         "match":{
+             "name": {
+                 "query": "{{ name }}",
+                 "operator": "{{ default(operator, 'or') }}"
+             }
+         }
+ {% endif %}
+     }
+ }
