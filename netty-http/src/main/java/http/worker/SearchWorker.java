@@ -20,7 +20,7 @@ public class SearchWorker extends ThreadPoolExecutor {
     private static SearchWorker instance;
 
     public SearchWorker(int size, String name, BlockingQueue blockingQueue) {
-        super(size, size*2, 0L, TimeUnit.MILLISECONDS, blockingQueue, new WorkerThread(name));
+        super(size, size+5, 0L, TimeUnit.MILLISECONDS, blockingQueue, new WorkerThread(name));
     }
 
     @Override

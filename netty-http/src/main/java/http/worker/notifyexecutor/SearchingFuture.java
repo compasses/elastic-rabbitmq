@@ -30,7 +30,7 @@ public class SearchingFuture<V> extends FutureTask<V> implements INotifyingFutur
 
     @Override
     protected void done() {
-        if(listener==null){
+        if(listener == null){
             return;
         }
         notifyListenerOnce();
@@ -45,7 +45,7 @@ public class SearchingFuture<V> extends FutureTask<V> implements INotifyingFutur
         }
     }
 
-    protected void notifyListener(){
+    protected void notifyListener() {
         this.executor.submit(new TaskCompletionRunner<V>(delegateFuture(),this.listener));
     }
 

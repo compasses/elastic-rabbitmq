@@ -31,7 +31,7 @@ public class DefaultServerInitializer extends ChannelInitializer<SocketChannel> 
         this.conf = conf;
         this.applicationContext = applicationContext;
 
-        this.executor = new SearchWorker(conf.getTaskThreadPoolSize(), "SearchWorkder", new ArrayBlockingQueue(500));
+        this.executor = new SearchWorker(conf.getTaskThreadPoolSize(), "SearchWorkder", new ArrayBlockingQueue(5));
 
 //                new DefaultEventExecutorGroup(
 //                conf.getTaskThreadPoolSize());

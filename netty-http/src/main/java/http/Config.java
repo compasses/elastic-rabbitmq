@@ -17,7 +17,7 @@ public class Config {
     }
 
     public Integer getTaskThreadPoolSize() {
-        return 5;
+        return 0;
     }
 
     public Integer getEventLoopThreadCount() {

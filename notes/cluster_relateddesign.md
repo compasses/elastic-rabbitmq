@@ -76,8 +76,18 @@ ElasticSearch的CAP特性，如下图所示：
 ### Cluster Design
 理解了ElasticSearch的Cluster的运作机制，才能更好为业务做出合适的部署方式。例如把ES当成一个底层的主数据存储组件，那就需要高一致性，然后可用性其次；如果ES只是用来做辅助功能例如加速Search，那么高可用性就是首要解决的了。
 
-参考：
+例如下面的设计：
 
+![cluster_deploy](./cluster_deploy.png)
+
+注意点：
+1.	三节点应该是最少的集群节点配置了，能保证较好的稳定性。
+2.	quorum值必须是一半以上节点的数目，所以三个节点的话，quorum值必须是。按照官方的说法这个设置能防止脑裂问题。
+3.	这个集群的配置对Search是友好的，就是说down了两个节点的话就不允许写入了，而Search依然可以进行。
+4.	针对写入的场景每个节点都是一个coordinator node，它会把index请求发给primary shard上。而Search不区分primary shard和replica shard。
+5.	分片的load balance是ElasticSearch自动完成的，有的时候并不一定保证均衡。每个分片的大小也是不能保证均衡的。
+
+参考：
 1.  https://www.elastic.co/blog/every-shard-deserves-a-home
 2.  https://www.elastic.co/blog/writing-your-own-ingest-processor-for-elasticsearch
 3.  https://www.elastic.co/blog/found-elasticsearch-networking
