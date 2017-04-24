@@ -1,6 +1,5 @@
 package initdata.sqlexecute;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import initdata.sqlexecute.SQLExecute.MariaDBSQLExecute;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -4,62 +4,76 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import elasticsearch.ElasticRestClient;
+import elasticsearch.constant.ESConstants;
+import elasticsearch.esapi.resp.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.StringEntity;
-import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.Executor;
 
 /**
  * Created by I311352 on 11/26/2016.
  */
 
 @Service
-public class MigrationESDataTo1612Service  {
-    private static final Logger logger = LoggerFactory.getLogger(MigrationESDataTo1612Service.class);
-    private final RestClient client = new ElasticRestClient().createInstance();
+public class LoadData {
+    private static final Logger logger = LoggerFactory.getLogger(LoadData.class);
+    private RestClient client = null;//new ElasticRestClient().createInstance();
     private final Gson gson = new Gson();
 
     //bulk operation
-    private final Integer STEP_SIZE = 500;
-    private final String UPGRADE_TAG = "upgradeTag";
-    private final int UPGRADE_VERSION = 1612;
-
+    private final Integer STEP_SIZE = 100;
     // aggregate fields
-    private final String TENANTID = "tenantId";
-    private final String CHANNELIDS = ESConstants.CHANNEL_LIST_IDS_KEY_1701;
 
-    public JsonObject initSourceFilter() {
+    public void saveData(String fileName, Long tenantId, String s3buket, String EShosts) throws Exception {
+        ElasticRestClient sclient = new ElasticRestClient();
+        sclient.setHosts(Arrays.asList(EShosts));
+
+        client = sclient.createInstance();
+        exec(tenantId, fileName);
+    }
+
+    /**
+     * {
+     "size": 100,
+     "query": {
+     "match" : {
+     "tenantId" : 35401674516640
+     }
+     }
+     }
+     * @return
+     */
+    public JsonObject initSourceFilter(Long tenantId) {
         JsonObject source = new JsonObject();
-        JsonArray sourceFilter = new JsonArray();
-        sourceFilter.add(new JsonPrimitive("id"));
-        sourceFilter.add(new JsonPrimitive("skuIds"));
-        source.add("_source", sourceFilter);
         source.addProperty("size", STEP_SIZE);
+        JsonObject match = new JsonObject();
+        match.addProperty("tenantId", tenantId);
+        JsonObject query = new JsonObject();
+        query.add("match", match);
+        source.add("query", query);
         return source;
     }
 
-    public void exec() {
-        logger.info("Start to upgrade ES data to 1612");
+    public void exec(Long tenantId, String file) {
+        logger.info("Start to export data");
         Integer round = 0;
         Long totalCount = 0L;
 
         HashMap<String, String> param = new HashMap<>();
-        param.put("scroll", "1m");
-        JsonObject source = initSourceFilter();
-
-        logger.info("going to update ES index max result window");
-        updateIndexMaxResultWindow();
+        param.put("scroll", "10m");
+        JsonObject source = initSourceFilter(tenantId);
 
         // get scroll info
         ESQueryResponse response = searchAll(param, source.toString());
@@ -67,8 +81,14 @@ public class MigrationESDataTo1612Service  {
 
         // scroll post body
         JsonObject scollSource = new JsonObject();
-        scollSource.addProperty("scroll", "1m");
+        scollSource.addProperty("scroll", "10m");
         scollSource.addProperty("scroll_id", scrollId);
+        BufferedWriter out = null;
+        try {
+            out = new BufferedWriter(new FileWriter(file), 20480);
+        } catch (IOException e) {
+            logger.error("Open file failed " + e);
+        }
 
         do {
             if (response == null || response.getHit().getHits().size() == 0) {
@@ -77,7 +97,7 @@ public class MigrationESDataTo1612Service  {
             }
 
             // do update
-            totalCount += doUpdate(response);
+            totalCount += doSaveData(out, response);
             // check finish or not
             if (response.getHit().getHits().size() < STEP_SIZE) {
                 break;
@@ -85,14 +105,13 @@ public class MigrationESDataTo1612Service  {
 
             // start new round update
             round ++;
-            logger.info("Start new round update round = " + round.toString());
             response = searchScroll(new HashMap<>(), scollSource.toString());
         } while (true);
 
-        logger.info("Upgrade finish, use round total = " + round.toString() + " product updates = " + totalCount);
+        logger.info("Upgrade finish, use round total = " + round.toString() + " data exported = " + totalCount);
         // need flush
         flush();
-        postCheckUpdate(totalCount);
+//        postCheckUpdate(totalCount);
         deleteScroll(scrollId);
     }
 
@@ -130,6 +149,54 @@ public class MigrationESDataTo1612Service  {
         } catch (IOException e) {
             logger.error("Error refresh request " + e);
         }
+    }
+
+
+    public Integer doSaveData(BufferedWriter out, ESQueryResponse response) {
+        // use bulk API
+        List<Hits> hits = response.getHit().getHits();
+        JsonArray updateActionArray = new JsonArray();
+        JsonArray updateDocArray = new JsonArray();
+
+        for (int i = 0; i < hits.size(); ++i) {
+            Hits hit = hits.get(i);
+            Long tenantId = Long.parseLong(hit.getRouting());
+            Long sourceId = hit.getSource().get("id").getAsLong();
+
+            // action meta data
+            JsonObject actionMeta = new JsonObject();
+            JsonObject actionInnerObj = new JsonObject();
+            actionInnerObj.addProperty("_id", sourceId);
+            actionInnerObj.addProperty("routing", tenantId);
+            actionInnerObj.addProperty("_type", hit.getType());
+            actionInnerObj.addProperty("_index", hit.getIndex());
+
+            actionMeta.add("update", actionInnerObj);
+            updateActionArray.add(actionMeta);
+
+            // doc source
+            JsonObject sourceObj = new JsonObject();
+            sourceObj.add("doc", hit.getSource());
+            updateDocArray.add(sourceObj);
+        }
+
+        assert updateActionArray.size() == updateDocArray.size();
+
+        StringBuilder body = new StringBuilder(1024*1024*20);
+        for (int i = 0; i < updateActionArray.size(); ++i) {
+            body.append(updateActionArray.get(i).toString());
+            body.append("\r\n");
+            body.append(updateDocArray.get(i).toString());
+            body.append("\r\n");
+        }
+
+        try {
+            out.write(body.toString());
+        } catch (IOException e) {
+            logger.error("write failed need check again..." + e);
+        }
+
+        return updateActionArray.size();
     }
 
     /**
@@ -171,9 +238,9 @@ public class MigrationESDataTo1612Service  {
             // doc source
             JsonObject sourceObj = new JsonObject();
             JsonObject sourceInnerObj = new JsonObject();
-            sourceInnerObj.add(CHANNELIDS, channelIds);
-            sourceInnerObj.addProperty(TENANTID, tenantId);
-            sourceInnerObj.addProperty(UPGRADE_TAG, UPGRADE_VERSION);
+//            sourceInnerObj.add(CHANNELIDS, channelIds);
+//            sourceInnerObj.addProperty(TENANTID, tenantId);
+//            sourceInnerObj.addProperty(UPGRADE_TAG, UPGRADE_VERSION);
             sourceObj.add("doc", sourceInnerObj);
             updateDocArray.add(sourceObj);
         }
@@ -234,7 +301,7 @@ public class MigrationESDataTo1612Service  {
             ESGetByIdResponse res = responses.get(i);
             if (res.getFound()) {
                 JsonObject sku = res.getObject();
-                JsonArray channels = sku.get(CHANNELIDS) == null ? null : sku.get(CHANNELIDS).getAsJsonArray();
+                JsonArray channels = null;//sku.get(CHANNELIDS) == null ? null : sku.get(CHANNELIDS).getAsJsonArray();
                 if (channels != null && channels.size() > 0) {
                     channels.forEach( channelId -> {
                         if (!channelIds.contains(channelId)) {
@@ -283,7 +350,7 @@ public class MigrationESDataTo1612Service  {
 
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode > 299) {
-                logger.warn("Problem while indexing a document: {}", response.getStatusLine().getReasonPhrase());
+                logger.warn("Problem while search a document: {}", response.getStatusLine().getReasonPhrase());
                 return null;
             }
 

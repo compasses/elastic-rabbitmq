@@ -9,6 +9,14 @@
 
 // Apply the java plugin to add support for Java
 apply plugin: 'java'
+apply plugin: 'application'
+mainClassName = 'elasticsearch.exportimport.mainCtrl'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'elasticsearch.exportimport.mainCtrl'
+    }
+}
 
 buildscript {
     repositories {

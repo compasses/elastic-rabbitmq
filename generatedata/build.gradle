@@ -19,6 +19,7 @@ buildscript {
 apply plugin: 'application'
 apply plugin: 'maven'
 apply plugin: 'org.springframework.boot'
+
 mainClassName = 'initdata.RabbitMQApp'
 
 sourceCompatibility = 1.8

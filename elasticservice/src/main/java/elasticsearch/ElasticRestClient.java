@@ -15,6 +15,7 @@ import java.util.List;
 /**
  * Created by I311352 on 9/30/2016.
  */
+
 @Component
 public class ElasticRestClient extends AbstractFactoryBean<RestClient> {
     private static Logger logger = Logger.getLogger(ElasticRestClient.class);
@@ -31,6 +32,7 @@ public class ElasticRestClient extends AbstractFactoryBean<RestClient> {
     public Class<?> getObjectType() {
         return RestClient.class;
     }
+
 
     @Override
     public RestClient createInstance() throws Exception {
