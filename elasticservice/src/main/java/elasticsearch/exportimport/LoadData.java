@@ -33,7 +33,7 @@ public class LoadData {
     private final Gson gson = new Gson();
 
     //bulk operation
-    private final Integer STEP_SIZE = 100;
+    private final Integer STEP_SIZE = 500;
     // aggregate fields
 
     public void saveData(String fileName, Long tenantId, String s3buket, String EShosts) throws Exception {
@@ -170,6 +170,7 @@ public class LoadData {
             actionInnerObj.addProperty("routing", tenantId);
             actionInnerObj.addProperty("_type", hit.getType());
             actionInnerObj.addProperty("_index", hit.getIndex());
+            actionInnerObj.addProperty("_retry_on_conflict",3);
 
             actionMeta.add("update", actionInnerObj);
             updateActionArray.add(actionMeta);
@@ -177,6 +178,7 @@ public class LoadData {
             // doc source
             JsonObject sourceObj = new JsonObject();
             sourceObj.add("doc", hit.getSource());
+            sourceObj.addProperty("doc_as_upsert", true);
             updateDocArray.add(sourceObj);
         }
 
@@ -344,7 +346,7 @@ public class LoadData {
             HttpEntity entity = new StringEntity(body);
             Response response = client.performRequest(
                     "GET",
-                    ESConstants.STORE_INDEX + "/" + ESConstants.PRODUCT_TYPE + "/_search",
+                    ESConstants.STORE_INDEX  + "/_search",
                     params,
                     entity);
 

@@ -22,7 +22,7 @@ import java.util.Properties;
 @Service
 public class MessagePublishService {
     private static final Logger logger = Logger.getLogger(MessagePublishService.class);
-    private static final String EXCHANGE_NAME = "SharedExchange";
+    private static final String EXCHANGE_NAME = "light-model-batch";
     private static boolean USE_DEFAULT = true;
 
     private static final String DEFAULT_RABBIT_PROPERTIES= "/rabbit/rabbitmq.properties";
