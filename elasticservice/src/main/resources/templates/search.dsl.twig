@@ -1,0 +1,15 @@
+{% import "templates/base.dsl.twig" %}
+{"query": {
+  "bool": {
+    "must": [
+      {"query_string": {
+          "query": "*{{ search_string }}*",
+          "default_operator": "or"
+        }
+      }
+    ],
+    {{ channel(channelId) }}
+  }},
+  "from": {{ from }},
+  "size": {{ size }}
+}

@@ -17,7 +17,9 @@ jar {
         attributes 'Main-Class': 'elasticsearch.exportimport.mainCtrl'
     }
 }
-
+dependencies {
+    compile 'com.mitchellbosecke:pebble:2.3.0'
+}
 buildscript {
     repositories {
         mavenCentral()

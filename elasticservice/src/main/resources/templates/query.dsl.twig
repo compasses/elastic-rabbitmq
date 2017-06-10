@@ -1,0 +1,16 @@
+{% import "templates/base.dsl.twig" %}
+
+{
+  "query":{
+    {{ query_base(filter, collectionForOr, channelId) }}
+    },
+    "sort":{
+    "{{ orderByField }}":{
+        "order" : "{{orderByOrder}}"
+        {% if orderByField contains "price" %}
+        ,"nested_path": "channels"
+        {% endif %}
+    }},
+    "from": {{ from }},
+    "size": {{ size }}
+}

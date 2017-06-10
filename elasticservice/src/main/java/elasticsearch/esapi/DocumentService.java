@@ -7,6 +7,7 @@ import elasticsearch.exception.ElasticAPIException;
 import elasticsearch.exception.ElasticQueryException;
 import elasticsearch.exception.ElasticVersionConflictException;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.StringEntity;
@@ -293,7 +294,7 @@ public class DocumentService {
     public ESQueryResponse query(String index, String type, Map<String, String> params, String body) {
         params = addTenantId2Param(params);
 
-        HttpEntity requestBody = new StringEntity(body, Charset.defaultCharset());
+        HttpEntity requestBody = new StringEntity(body, Charsets.UTF_8);
         try {
             Response response = client.performRequest(
                     "GET",
@@ -334,7 +335,7 @@ public class DocumentService {
             params = new HashMap<>();
         }
 
-        params.put("routing", "1");// UserInfoContextHolder.getTenantId().toString()
+        //params.put("routing", "1");// UserInfoContextHolder.getTenantId().toString()
         return params;
     }
 

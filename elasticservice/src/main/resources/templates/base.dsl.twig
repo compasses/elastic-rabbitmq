@@ -1,0 +1,161 @@
+{% macro term(meta) %}
+{"term":{
+    "{{meta.key}}":{% if meta.valueType == "STRING" or meta.valueType == "DATE" %} "{{meta.value}}" {% else %} {{meta.value}} {% endif %}
+}}
+{% endmacro %}
+
+{% macro range_query(meta) %}
+{"range":{
+    "{{ meta.key }}": {
+    "{{ meta.operator }}" : {% if meta.valueType == "STRING" or meta.valueType == "DATE" %} "{{meta.value|first}}" {% else %} {{meta.value|first}} {% endif %}
+    }
+}}
+{% endmacro %}
+
+{% macro terms_query(meta, isStr="false") %}
+{"terms":{
+    "{{meta.key}}": [
+        {% for value in meta.value %}
+            {% if meta.valueType == "STRING" or meta.valueType == "DATE" or isStr == "true" %} "{{value}}" {% else %} {{value}} {% endif %} {% if loop.index != loop.length-1 %}, {% endif %}
+        {% endfor %}
+    ]
+}}
+{% endmacro %}
+
+{% macro wildcard_query(meta) %}
+{"wildcard":{
+    "{{meta.key}}": {
+      "value": "{{meta.value|first}}"
+    }
+}}
+{% endmacro %}
+
+{% macro prefix_query(meta) %}
+{"prefix":{
+    "{{meta.key}}": {
+      "value": "{{meta.value|first}}"
+    }
+}}
+{% endmacro %}
+
+{% macro channel(channelId) %}
+"must": [{"nested": {
+    "path": "channels",
+    "query": {
+      "bool": {
+        "must": [
+          {
+            "match": {
+              "channels.id": {{ channelId }}
+            }
+          }
+        ]
+      }
+    }
+  }
+}]
+{% endmacro %}
+
+{% macro nest_range(meta)%}
+{
+  "nested": {
+    "path": "{{ meta.nestPath }}",
+    "query": {
+      "range": {
+        "{{ meta.key }}": {
+          "{{ meta.operator }}": {% if meta.valueType == "STRING" or meta.valueType == "DATE" %} "{{meta.value|first}}" {% else %} {{meta.value|first}} {% endif %}
+        }
+      }
+    }
+  }
+}
+{% endmacro %}
+
+{% macro nest_query(meta) %}
+{
+  "nested": {
+    "path": "{{ meta.nestPath }}",
+    "query": {
+      "bool": {
+        "must": [
+        {{ terms_query(meta) }}
+        ]
+      }
+    }
+  }
+}
+{% endmacro %}
+
+{% macro nest_sys_attribute_query(meta) %}
+{
+  "nested": {
+    "path": "{{ meta.nestPath }}",
+    "query": {
+      "bool": {
+        "must": [
+        {% for entry in meta.sysAttributes %}
+            {{ terms_query(entry, "true") }} {% if loop.index != loop.length-1 %}, {% endif %}
+        {% endfor %}
+        ]
+      }
+    }
+  }
+}
+{% endmacro %}
+
+{% macro meta_query(meta)%}
+{% if meta.keyType == "NORMAL" %}
+    {% if meta.valueType == "STRING" %}
+        {{ terms_query(meta) }}
+    {% elseif meta.valueType == "WILDCARD" %}
+        {{ wildcard_query(meta) }}
+    {% elseif meta.valueType == "PREFIX" %}
+        {{ prefix_query(meta) }}
+    {% else %}
+        {{ range_query(meta) }}
+    {% endif %}
+{% else %}
+    {% if meta.valueType == "STRING" or meta.valueType == "IDLIST" %}
+        {% if meta.nestPath == "attributes" %}
+            {{ nest_sys_attribute_query(meta) }}
+        {% else %}
+            {{ nest_query(meta) }}
+        {% endif %}
+    {% else %}
+        {{ nest_range(meta) }}
+    {% endif %}
+{% endif %}
+{% endmacro %}
+
+{% macro query_base(filter, collectionForOr, channelId) %}
+{% if filter | length > 0 %}
+"bool" : {
+  "must" : [
+    {% for term in filter %}
+    {{ meta_query(term) }} {% if loop.index != loop.length-1 %}, {% endif %}
+    {% endfor %}
+  ]
+  {% if collectionForOr %}
+    ,"should": [
+     {% for term in collectionForOr %}
+       {{ meta_query(term) }} {% if loop.index != loop.length-1 %}, {% endif %}
+     {% endfor %}
+    ]
+  {% endif %}
+  ,{{ channel(channelId) }}
+}
+{% elseif collectionForOr %}
+"bool" : {
+    "should": [
+    {% for term in collectionForOr %}
+       {{ meta_query(term) }} {% if loop.index != loop.length-1 %}, {% endif %}
+     {% endfor %}
+    ]
+    ,{{ channel(channelId) }}
+}
+{% else %}
+"bool":{
+    {{ channel(channelId) }}
+}
+{% endif %}
+{% endmacro %}
