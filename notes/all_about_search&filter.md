@@ -37,6 +37,8 @@ ES支持多种应用场景，autosuggest，fuzzy Search，同义词等。这些�
 ```
 
 tokenizer为分词器定义，filter中指定了所用的filter，有同义词的filter，转换大小写，边界词filter。可以参照ES的官方文档进行进一步理解。同义词filter支持定义对应的同义词，但是同义词的更新需要做reindex操作。
+这里使用的是standard的分词器，如果需要同时支持中英文，需要安装特定的插件，例如官方的[smartcn](https://www.elastic.co/guide/en/elasticsearch/plugins/5.1/analysis-smartcn.html)就是个不错的选择。
+
 有时我们需要做跨字段的推荐或者搜索，可以利用field的copy_to属性：
 
 ```json
